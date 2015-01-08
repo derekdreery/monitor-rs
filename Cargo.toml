@@ -4,5 +4,8 @@ name = "monitor-rs"
 version = "0.0.1"
 authors = ["Richard Dodd <richard.o.dodd@gmail.com>"]
 
-[dependencies.toml]
-git = "https://github.com/alexcrichton/toml-rs"
+[dependencies]
+regex_macros = "0.1.4"
+toml = "0.1.10"
+time = "0.1.11"
+hyper = "0.0.21"
