@@ -82,14 +82,22 @@ fn load_config(settings: &mut Settings) {
     let conf_str = match conf_file.read_to_string() {
         Ok(s) => { s },
         Err(e) => {
-            panic!(format!("Error: could not read config file - {}", e));
+            println!("Error reading in config file, {}", e);
+            panic!("Exiting on fatal error");
         }
     };
     let mut parser = toml::Parser::new(conf_str.as_slice());
     let conf_table = match parser.parse() {
         Some(s) => { s },
         None => {
-            panic!(format!("Config file parse errors: {}", parser.errors))
+            println!("There were errors parsing toml config file:");
+            for err in parser.errors.iter() {
+                let (lo_line, lo_col) = parser.to_linecol(err.lo);
+                let (hi_line, hi_col) = parser.to_linecol(err.hi);
+                println!("  Row {} col {} to row {} col {}: {}",
+                         lo_line, lo_col, hi_line, hi_col, err.desc);
+            }
+            panic!("Exiting on fatal error");
         }
     };
 

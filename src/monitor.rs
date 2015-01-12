@@ -7,33 +7,33 @@ use std::ops;
 #[derive(Show)]
 pub struct StatSnapshot {
     time: time::Timespec,
-    cpu_no: Option<uint>,
-    user: uint,
-    nice: uint,
-    system: uint,
-    idle: uint,
-    iowait: uint,
-    irq: uint,
-    softirq: uint
+    cpu_no: Option<u32>,
+    user: u32,
+    nice: u32,
+    system: u32,
+    idle: u32,
+    iowait: u32,
+    irq: u32,
+    softirq: u32
 }
 
 #[derive(Show)]
 pub struct StatDelta {
     time: duration::Duration,
-    cpu_no: Option<uint>,
-    user: uint,
-    nice: uint,
-    system: uint,
-    idle: uint,
-    iowait: uint,
-    irq: uint,
-    softirq: uint
+    cpu_no: Option<u32>,
+    user: u32,
+    nice: u32,
+    system: u32,
+    idle: u32,
+    iowait: u32,
+    irq: u32,
+    softirq: u32
 }
 
 #[derive(Show)]
 pub struct StatReport {
     duration: duration::Duration,
-    cpu_no: Option<uint>,
+    cpu_no: Option<u32>,
     user: f32,
     nice: f32,
     system: f32,
@@ -44,12 +44,25 @@ pub struct StatReport {
     total_used: f32
 }
 
+/// Function to check cpus match, and give helpful error message on failure
+fn check_cpus_match(cpu0: Option<u32>, cpu1: Option<u32>) {
+    match (cpu0, cpu1) {
+        (Some(c), None) | (None, Some(c)) => {
+            panic!("Cannot add cpu aggregate and cpu {}", c);
+        },
+        (Some(c1), Some(c2)) => {
+            if c1 != c2 {
+                panic!("Cannot add different cpus '{}' and {}", c1, c2);
+            }
+        },
+        _ => {}
+    }
+}
+
 impl ops::Add<StatDelta> for StatSnapshot {
     type Output = StatSnapshot;
     fn add(self, other: StatDelta) -> StatSnapshot {
-        if self.cpu_no != other.cpu_no {
-            panic!("Cannot add different cpus {} and {}", self.cpu_no, other.cpu_no);
-        }
+        check_cpus_match(self.cpu_no, other.cpu_no);
         StatSnapshot {
             time: self.time + other.time,
             cpu_no: self.cpu_no,
@@ -67,9 +80,7 @@ impl ops::Add<StatDelta> for StatSnapshot {
 impl ops::Sub<StatDelta> for StatSnapshot {
     type Output = StatSnapshot;
     fn sub(self, other: StatDelta) -> StatSnapshot {
-        if self.cpu_no != other.cpu_no {
-            panic!("Cannot add different cpus {} and {}", self.cpu_no, other.cpu_no);
-        }
+        check_cpus_match(self.cpu_no, other.cpu_no);
         StatSnapshot {
             time: self.time - other.time,
             cpu_no: self.cpu_no,
@@ -88,9 +99,7 @@ impl ops::Sub for StatSnapshot {
     type Output = StatDelta;
 
     fn sub(self, other: StatSnapshot) -> StatDelta {
-        if self.cpu_no != other.cpu_no {
-            panic!("Cannot add different cpus {} and {}", self.cpu_no, other.cpu_no);
-        }
+        check_cpus_match(self.cpu_no, other.cpu_no);
         StatDelta {
             time: self.time - other.time,
             cpu_no: self.cpu_no,
